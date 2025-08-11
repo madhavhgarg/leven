@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- The viewport meta tag ensures the page is responsive and looks good on all devices. -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- The title has been updated to reflect the new combined message. -->
+    <title>Leven - Welcome & Coming Soon</title>
+    <!--
+      This script tag loads the Tailwind CSS framework from a CDN (Content Delivery Network).
+      This allows us to use Tailwind's utility classes for styling without a complex setup.
+    -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      /* We're using the "Inter" font, which is a popular modern font for web applications. */
+      body {
+        font-family: "Inter", sans-serif;
+      }
+    </style>
+</head>
+<!--
+  The body now has a vibrant red-pink gradient background, inspired by Tinder's branding.
+  The `bg-gradient-to-r` class creates a linear gradient from left to right.
+-->
+<body class="bg-gradient-to-r from-pink-500 to-red-500 flex items-center justify-center min-h-screen">
+    <main class="bg-white p-8 md:p-12 rounded-lg shadow-2xl max-w-lg w-full text-center">
+        <!--
+          This `main` element acts as a container for our content.
+          - `bg-white`: Sets a white background color.
+          - `p-8 md:p-12`: Adds padding, which increases on medium screens and above for better spacing.
+          - `rounded-lg`: Gives the container slightly rounded corners.
+          - `shadow-2xl`: Adds a prominent shadow to make the container stand out.
+          - `max-w-lg`: Limits the maximum width of the container to prevent it from getting too wide on large screens.
+          - `w-full`: Makes the container take up the full width on smaller screens.
+          - `text-center`: Centers the text inside the container.
+        -->
+        <h1 class="text-4xl sm:text-5xl font-extrabold text-gray-800 tracking-tight leading-tight">
+            <!-- The main heading is "Welcome to Leven" -->
+            Welcome to Leven
+        </h1>
+        <!-- A new subheading has been added for the "Coming Soon" message. -->
+        <h2 class="text-2xl font-semibold text-gray-600 mt-4">
+            Coming Soon
+        </h2>
+    </main>
+</body>
+</html>

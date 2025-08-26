@@ -182,6 +182,7 @@
                 <a href="#connections" class="nav-link" data-tab="connections">Connections</a>
                 <a href="#feed" class="nav-link" data-tab="feed">Feed</a>
                 <a href="#clubs" class="nav-link" data-tab="clubs">Clubs & Communities</a>
+                <a href="#jobs" class="nav-link" data-tab="jobs">Job Postings</a>
                 <a href="#wellness" class="nav-link" data-tab="wellness">Wellness Hub</a>
             </div>
             <div id="auth-container" class="flex items-center space-x-2">
@@ -343,6 +344,17 @@
             </div>
         </section>
 
+        <!-- Job Postings Section -->
+        <section id="jobs" class="tab-content hidden">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-gray-900">Job Postings</h2>
+                <p class="mt-2 text-gray-600 max-w-xl mx-auto">Find your next internship or full-time role. Exclusive opportunities for verified students.</p>
+            </div>
+            <div id="job-listings" class="space-y-4">
+                <!-- Job listings will be injected here -->
+            </div>
+        </section>
+
         <!-- Wellness Hub Section -->
         <section id="wellness" class="tab-content hidden">
             <div class="text-center">
@@ -464,6 +476,22 @@
             { name: 'Dr. Anjali Sharma', specialty: 'Stress & Anxiety Management', avatar: 'https://images.pexels.com/photos/4173249/pexels-photo-4173249.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2' },
             { name: 'Dr. Vikram Singh', specialty: 'Academic Pressure & Burnout', avatar: 'https://images.pexels.com/photos/5215024/pexels-photo-5215024.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2' },
             { name: 'Dr. Priya Desai', specialty: 'Relationship Counseling', avatar: 'https://images.pexels.com/photos/5407206/pexels-photo-5407206.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2' }
+        ];
+        
+        const jobPostings = [
+            { title: 'Software Engineering Intern', company: 'Google', location: 'Bangalore', type: 'Internship' },
+            { title: 'Product Management Intern', company: 'Microsoft', location: 'Hyderabad', type: 'Internship' },
+            { title: 'Data Analyst Intern', company: 'Amazon', location: 'Chennai', type: 'Internship' },
+            { title: 'Marketing Intern', company: 'Zomato', location: 'Gurgaon', type: 'Internship' },
+            { title: 'Business Development Associate', company: 'Paytm', location: 'Noida', type: 'Full-time' },
+            { title: 'Graphic Design Intern', company: 'Swiggy', location: 'Bangalore', type: 'Internship' },
+            { title: 'Frontend Developer', company: 'Flipkart', location: 'Bangalore', type: 'Full-time' },
+            { title: 'Operations Intern', company: 'Ola', location: 'Mumbai', type: 'Internship' },
+            { title: 'Content Writer', company: 'Nykaa', location: 'Mumbai', type: 'Full-time' },
+            { title: 'Human Resources Intern', company: 'Reliance', location: 'Mumbai', type: 'Internship' },
+            { title: 'UX/UI Design Intern', company: 'Cred', location: 'Bangalore', type: 'Internship' },
+            { title: 'Management Trainee', company: 'Tata Motors', location: 'Pune', type: 'Full-time' },
+            { title: 'Research Intern', company: 'DRDO', location: 'Delhi', type: 'Internship' }
         ];
 
 
@@ -665,6 +693,22 @@
         });
         lucide.createIcons();
 
+        // --- Job Postings Logic ---
+        const jobListingsContainer = document.getElementById('job-listings');
+        jobPostings.forEach(job => {
+            const jobElement = document.createElement('div');
+            jobElement.classList.add('bg-white', 'p-4', 'rounded-2xl', 'shadow-lg', 'flex', 'justify-between', 'items-center');
+            jobElement.innerHTML = `
+                <div>
+                    <h3 class="text-lg font-bold text-gray-800">${job.title}</h3>
+                    <p class="text-gray-600">${job.company} - ${job.location}</p>
+                    <span class="text-xs font-semibold ${job.type === 'Internship' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'} px-2 py-1 rounded-full">${job.type}</span>
+                </div>
+                <button class="bg-gray-800 text-white font-semibold px-5 py-2 rounded-full hover:bg-gray-900 transition">Apply Now</button>
+            `;
+            jobListingsContainer.appendChild(jobElement);
+        });
+
         // --- Wellness Hub & Chat Logic ---
         const expertsGrid = document.getElementById('experts-grid');
         const chatModal = document.getElementById('chatModal');
@@ -809,11 +853,31 @@
             "Calling all coders! ACM's 24-Hour Hackathon is this weekend. Are you ready?",
             "Build the future! The Robotics Club is recruiting for the IARC team. Submit your blueprint today."
         ];
-        let currentAnnouncementIndex = 0;
+        
+        const allNotifications = [];
+        const jobNotifications = jobPostings.map(job => ({
+            type: 'New Job Posting',
+            message: `${job.title} at ${job.company}. Apply now!`
+        }));
+
+        let i = 0;
+        while (i < clubAnnouncements.length || i < jobNotifications.length) {
+            if (i < clubAnnouncements.length) {
+                allNotifications.push({ type: 'Club Announcement', message: clubAnnouncements[i] });
+            }
+            if (i < jobNotifications.length) {
+                allNotifications.push(jobNotifications[i]);
+            }
+            i++;
+        }
+
+        let currentNotificationIndex = 0;
 
         function showNotification() {
-            const message = clubAnnouncements[currentAnnouncementIndex];
-            currentAnnouncementIndex = (currentAnnouncementIndex + 1) % clubAnnouncements.length;
+            if (allNotifications.length === 0) return;
+
+            const notificationData = allNotifications[currentNotificationIndex];
+            currentNotificationIndex = (currentNotificationIndex + 1) % allNotifications.length;
 
             const notification = document.createElement('div');
             notification.classList.add('notification', 'bg-white', 'p-4', 'rounded-lg', 'shadow-lg', 'max-w-xs');
@@ -821,8 +885,8 @@
                 <div class="flex items-start space-x-3">
                     <div><i data-lucide="bell" class="w-5 h-5 text-pink-500"></i></div>
                     <div>
-                        <p class="font-semibold text-gray-800">Club Announcement</p>
-                        <p class="text-sm text-gray-600">${message}</p>
+                        <p class="font-semibold text-gray-800">${notificationData.type}</p>
+                        <p class="text-sm text-gray-600">${notificationData.message}</p>
                     </div>
                 </div>
             `;
@@ -835,8 +899,8 @@
             }, 5000); // Notification stays for 5 seconds
         }
 
-        // Show a notification every 10 seconds
-        setInterval(showNotification, 10000);
+        // Show a notification every 21 seconds
+        setInterval(showNotification, 21000);
 
 
     </script>

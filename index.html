@@ -90,16 +90,82 @@
             z-index: 10;
         }
         .profile-card .like {
-            color: #10B981; /* Emerald 500 */
+            color: #10B981;
             border-color: #10B981;
             transform: rotate(-15deg);
             right: 40px;
         }
         .profile-card .nope {
-            color: #EF4444; /* Red 500 */
+            color: #EF4444;
             border-color: #EF4444;
             transform: rotate(15deg);
             left: 40px;
+        }
+        /* Modal Styles */
+        .modal {
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        .modal.hidden {
+            opacity: 0;
+            transform: scale(0.95);
+            pointer-events: none;
+        }
+        .chat-bubble-user {
+            background-color: #F472B6;
+            color: white;
+        }
+        .chat-bubble-therapist {
+            background-color: #E5E7EB;
+            color: #1F2937;
+        }
+        /* Match Animation Styles */
+        .match-modal-content {
+            animation: scaleUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        @keyframes scaleUp {
+            from { transform: scale(0.5); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .emoji-rain {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: -1;
+        }
+        .emoji {
+            position: absolute;
+            font-size: 2rem;
+            animation: fall 4s linear infinite;
+        }
+        @keyframes fall {
+            from { top: -10%; }
+            to { top: 110%; }
+        }
+        /* Stories Styles */
+        .stories-container {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+        .stories-container::-webkit-scrollbar {
+            display: none; /* Chrome, Safari, Opera */
+        }
+        .story-item .story-ring {
+            background: linear-gradient(45deg, #F9A8D4, #F472B6, #F59E0B);
+        }
+        /* Notification Styles */
+        .notification {
+            animation: slideIn 0.5s ease forwards, slideOut 0.5s ease 4.5s forwards;
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(100%); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes slideOut {
+            from { opacity: 1; transform: translateX(0); }
+            to { opacity: 0; transform: translateX(100%); }
         }
     </style>
 </head>
@@ -109,20 +175,20 @@
     <header class="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-50">
         <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
             <div class="flex items-center space-x-2">
-                <img src="https://storage.googleapis.com/gemini-prod-us-west1-4335/v1/files/Gemini_Generated_Image_oz8f0uoz8f0uoz8f_1.jpg" alt="Leven Logo" class="h-8 w-8">
                 <span class="text-2xl font-bold gradient-text">Leven</span>
             </div>
             <div class="hidden md:flex items-center space-x-8">
                 <a href="#home" class="nav-link active" data-tab="home">Home</a>
                 <a href="#connections" class="nav-link" data-tab="connections">Connections</a>
                 <a href="#feed" class="nav-link" data-tab="feed">Feed</a>
-                <a href="#help" class="nav-link" data-tab="help">Help</a>
+                <a href="#clubs" class="nav-link" data-tab="clubs">Clubs & Communities</a>
+                <a href="#wellness" class="nav-link" data-tab="wellness">Wellness Hub</a>
             </div>
-            <div class="flex items-center space-x-4">
-                <button class="text-gray-600 hover:text-pink-500 font-medium">Log In</button>
-                <button class="bg-gradient-to-r from-pink-500 to-orange-400 text-white font-semibold px-5 py-2 rounded-full hover:shadow-lg transition">
-                    Sign Up
-                </button>
+            <div id="auth-container" class="flex items-center space-x-2">
+                 <button id="login-btn" class="text-gray-600 hover:text-pink-500 font-medium px-3 py-2">Log In</button>
+                 <button id="signup-btn" class="bg-gradient-to-r from-pink-500 to-orange-400 text-white font-semibold px-5 py-2 rounded-full hover:shadow-lg transition">
+                     Sign Up
+                 </button>
             </div>
         </nav>
     </header>
@@ -141,7 +207,7 @@
                 <p class="mt-6 max-w-2xl mx-auto text-lg text-gray-600">
                     Welcome to Leven, the trusted social hub where verified students share real campus moments. Find real friends through daily questions and fun.
                 </p>
-                <button class="mt-8 bg-gradient-to-r from-pink-500 to-orange-400 text-white font-bold text-lg px-8 py-4 rounded-full hover:shadow-xl transform hover:scale-105 transition-transform duration-300">
+                <button id="join-community-btn" class="mt-8 bg-gradient-to-r from-pink-500 to-orange-400 text-white font-bold text-lg px-8 py-4 rounded-full hover:shadow-xl transform hover:scale-105 transition-transform duration-300">
                     Join the Community
                 </button>
             </div>
@@ -225,48 +291,179 @@
                     <h2 class="text-3xl font-bold text-gray-900">Campus Feed</h2>
                     <p class="mt-2 text-gray-600">See what's happening around you. College-friendly content only.</p>
                 </div>
+                <!-- Stories Section -->
+                <div id="stories-section" class="mb-8"></div>
+                
                 <div class="space-y-8" id="feed-container">
                     <!-- Feed posts will be injected here -->
                 </div>
             </div>
         </section>
+        
+        <!-- Clubs & Communities Section -->
+        <section id="clubs" class="tab-content hidden">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-gray-900">Clubs & Communities</h2>
+                <p class="mt-2 text-gray-600 max-w-xl mx-auto">Find your niche, join a team, and build something amazing. See what's happening in campus clubs.</p>
+            </div>
+            <div class="space-y-8">
+                <!-- Entrepreneurship Cell -->
+                <div class="bg-white p-6 rounded-2xl shadow-lg">
+                    <h3 class="text-2xl font-bold text-gray-800">Entrepreneurship Cell</h3>
+                    <p class="text-gray-600 mt-1">Innovate. Incubate. Inspire.</p>
+                    <div class="mt-4 border-t pt-4">
+                        <h4 class="font-semibold text-lg">Ongoing Event: Case Study Competition</h4>
+                        <p class="text-gray-500 mt-1">Analyse a real-world business problem and present your innovative solution. Registrations are now open!</p>
+                        <button class="mt-3 bg-blue-500 text-white font-semibold px-5 py-2 rounded-full hover:bg-blue-600 transition">Register Now</button>
+                    </div>
+                </div>
+                <!-- ACM -->
+                <div class="bg-white p-6 rounded-2xl shadow-lg">
+                    <h3 class="text-2xl font-bold text-gray-800">ACM Student Chapter</h3>
+                    <p class="text-gray-600 mt-1">Advancing Computing as a Science & Profession.</p>
+                    <div class="mt-4 border-t pt-4">
+                        <h4 class="font-semibold text-lg">Ongoing Event: 24-Hour Hackathon</h4>
+                        <p class="text-gray-500 mt-1">Team up and build a project from scratch. The problem statement will be released at the start of the event. Prizes worth ₹50,000!</p>
+                        <button class="mt-3 bg-green-500 text-white font-semibold px-5 py-2 rounded-full hover:bg-green-600 transition">Give Open Assessment</button>
+                    </div>
+                </div>
+                <!-- Robotics Club -->
+                <div class="bg-white p-6 rounded-2xl shadow-lg">
+                    <h3 class="text-2xl font-bold text-gray-800">Robotics Club</h3>
+                    <p class="text-gray-600 mt-1">Building the Future, One Bot at a Time.</p>
+                    <div class="mt-4 border-t pt-4">
+                        <h4 class="font-semibold text-lg">Recruitment: IARC Team Selections</h4>
+                        <p class="text-gray-500 mt-1">We are looking for passionate individuals to join our team for the International Aerial Robotics Competition (IARC). Submit your application now.</p>
+                        <div class="flex space-x-4 mt-3">
+                            <button class="bg-gray-700 text-white font-semibold px-5 py-2 rounded-full hover:bg-gray-800 transition">Submit Blueprint</button>
+                            <button class="bg-gray-700 text-white font-semibold px-5 py-2 rounded-full hover:bg-gray-800 transition">Submit Your Code</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-        <!-- Help Section -->
-        <section id="help" class="tab-content hidden">
+        <!-- Wellness Hub Section -->
+        <section id="wellness" class="tab-content hidden">
             <div class="text-center">
                 <h2 class="text-3xl font-bold text-gray-900">Mental Wellness Hub</h2>
                 <p class="mt-2 text-gray-600 max-w-2xl mx-auto">Your well-being matters. Connect with verified experts for confidential and supportive conversations. You are not alone.</p>
             </div>
-            <div class="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div class="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" id="experts-grid">
                 <!-- Expert cards will be injected here -->
             </div>
         </section>
 
     </main>
+    
+    <!-- Auth Modal -->
+    <div id="authModal" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-[60]">
+        <div class="bg-white w-full max-w-sm rounded-2xl shadow-xl p-8 text-center relative">
+             <button id="closeAuthModal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+            <h2 class="text-2xl font-bold mb-4">Verify Your Student ID</h2>
+            <p class="text-gray-600 mb-6">To ensure a safe community, we verify every student.</p>
+            <button id="authScanBtn" class="w-full flex justify-center items-center space-x-2 bg-gray-800 text-white font-semibold px-5 py-3 rounded-full hover:bg-gray-900 transition">
+                <i data-lucide="camera" class="w-5 h-5"></i>
+                <span>Scan SID</span>
+            </button>
+        </div>
+    </div>
+    
+    <!-- Chat Modal -->
+    <div id="chatModal" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-[60]">
+        <div class="bg-white w-full max-w-lg h-[70vh] rounded-2xl shadow-xl flex flex-col">
+            <div class="p-4 border-b flex justify-between items-center">
+                <h3 id="chat-expert-name" class="font-bold text-lg">Chat with Expert</h3>
+                <button id="closeChatBtn" class="text-gray-500 hover:text-gray-800">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+            <div id="chatMessages" class="flex-1 p-4 space-y-4 overflow-y-auto">
+                <!-- Chat messages will be appended here -->
+            </div>
+            <div class="p-4 border-t">
+                <form id="chatForm" class="flex items-center space-x-2">
+                    <input id="chatInput" type="text" placeholder="Type your message..." class="w-full px-4 py-2 border rounded-full focus:outline-none focus:ring-2 focus:ring-pink-400">
+                    <button type="submit" class="bg-pink-500 text-white rounded-full p-3 hover:bg-pink-600 transition">
+                        <i data-lucide="send" class="w-5 h-5"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Match Modal -->
+    <div id="matchModal" class="modal fixed inset-0 bg-pink-400 bg-opacity-80 backdrop-blur-sm flex items-center justify-center p-4 hidden z-[70]">
+        <div class="match-modal-content text-center text-white relative">
+            <div class="emoji-rain"></div>
+            <h1 class="text-6xl font-extrabold" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">IT'S A MATCH!</h1>
+            <p class="text-xl mt-2">You and <span id="matchName"></span> liked each other.</p>
+            <div class="flex justify-center items-center space-x-[-40px] mt-8">
+                 <img id="userMatchPhoto" src="https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" alt="You" class="w-32 h-32 rounded-full border-4 border-white shadow-lg object-cover">
+                 <img id="profileMatchPhoto" src="" alt="Your Match" class="w-32 h-32 rounded-full border-4 border-white shadow-lg object-cover">
+            </div>
+            <button id="startChattingBtn" class="mt-8 bg-white text-pink-500 font-bold px-8 py-3 rounded-full shadow-lg">Start Chatting</button>
+        </div>
+    </div>
+
+    <!-- Notification Container -->
+    <div id="notification-container" class="fixed bottom-5 right-5 space-y-3 z-[100]">
+        <!-- Notifications will be injected here -->
+    </div>
+
 
     <script>
         // Lucide Icons initialization
         lucide.createIcons();
 
-        // --- Data ---
+        // --- Data with AI Generated Photos ---
         const connectionProfiles = [
-            { name: 'Priya', question: 'What\'s a small thing that brings you joy?', answer: 'That first sip of chai in the morning. It\'s like a warm hug for my soul before a long day of classes.', avatar: 'https://placehold.co/100x100/F9A8D4/4A5568?text=P' },
-            { name: 'Rohan', question: 'If you could have any superpower, what would it be?', answer: 'Teleportation, for sure. Imagine never being late for an 8 AM lecture again! Plus, weekend trips home would be a breeze.', avatar: 'https://placehold.co/100x100/A5B4FC/4A5568?text=R' },
-            { name: 'Aisha', question: 'What\'s a skill you\'re currently trying to learn?', answer: 'I\'m trying to learn guitar. My roommate has one and I\'ve been secretly watching YouTube tutorials. So far, I can play a very clumsy version of "Twinkle Twinkle Little Star".', avatar: 'https://placehold.co/100x100/FCD34D/4A5568?text=A' },
-            { name: 'Karan', question: 'Describe your perfect study break.', answer: 'A 20-minute power nap followed by a quick game of badminton with friends. Just enough to reset the brain without losing momentum.', avatar: 'https://placehold.co/100x100/6EE7B7/4A5568?text=K' },
-            { name: 'Meera', question: 'What fictional world would you love to live in?', answer: 'Definitely the world of Harry Potter. I want to study at Hogwarts, play Quidditch, and have a pet owl. Who needs regular college?', avatar: 'https://placehold.co/100x100/FCA5A5/4A5568?text=M' }
+            { id: 1, name: 'Priya', question: 'What\'s a small thing that brings you joy?', answer: 'That first sip of chai in the morning.', avatar: 'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2' },
+            { id: 2, name: 'Rohan', question: 'If you could have any superpower, what would it be?', answer: 'Teleportation, for sure. No more 8 AM lectures!', avatar: 'https://images.pexels.com/photos/1516680/pexels-photo-1516680.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2' },
+            { id: 3, name: 'Aisha', question: 'What\'s a skill you\'re currently trying to learn?', answer: 'I\'m trying to learn guitar from YouTube.', avatar: 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2' },
+            { id: 4, name: 'Karan', question: 'Describe your perfect study break.', answer: 'A 20-minute power nap, then badminton.', avatar: 'https://images.pexels.com/photos/837358/pexels-photo-837358.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2' },
+            { id: 5, name: 'Meera', question: 'What fictional world would you love to live in?', answer: 'Hogwarts, no question.', avatar: 'https://images.pexels.com/photos/1043473/pexels-photo-1043473.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2' },
+            { id: 6, name: 'Siddharth', question: 'What\'s your go-to comfort food?', answer: 'A warm plate of Rajma Chawal.', avatar: 'https://images.pexels.com/photos/91227/pexels-photo-91227.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2' },
+            { id: 7, name: 'Ananya', question: 'A book you think everyone should read?', answer: '"The Alchemist". It\'s simple but profound.', avatar: 'https://images.pexels.com/photos/733872/pexels-photo-733872.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2' },
+            { id: 8, name: 'Arjun', question: 'What\'s a hobby you\'ve recently picked up?', answer: 'Film photography. There\'s something magical about it.', avatar: 'https://images.pexels.com/photos/1681010/pexels-photo-1681010.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2' },
+            { id: 9, name: 'Diya', question: 'What\'s your favorite festival?', answer: 'Diwali! The lights, the food, the family time.', avatar: 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2' },
+            { id: 10, name: 'Kabir', question: 'What song is stuck in your head right now?', answer: 'Anything by AP Dhillon, honestly.', avatar: 'https://images.pexels.com/photos/846741/pexels-photo-846741.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2' },
+            { id: 11, name: 'Zara', question: 'Best place to hang out on campus?', answer: 'The little garden behind the library.', avatar: 'https://images.pexels.com/photos/1181519/pexels-photo-1181519.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2' },
+            { id: 12, name: 'Ishaan', question: 'What\'s one thing you can\'t live without?', answer: 'My headphones. Music is everything.', avatar: 'https://images.pexels.com/photos/1040881/pexels-photo-1040881.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2' },
+            { id: 13, name: 'Saanvi', question: 'Early bird or night owl?', answer: 'Definitely a night owl. I get my best work done after midnight.', avatar: 'https://images.pexels.com/photos/1130626/pexels-photo-1130626.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2' },
+            { id: 14, name: 'Advik', question: 'What\'s your dream travel destination?', answer: 'Backpacking through Europe.', avatar: 'https://images.pexels.com/photos/614810/pexels-photo-614810.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2' },
+            { id: 15, name: 'Myra', question: 'What\'s a simple pleasure you enjoy?', answer: 'Watching the sunset from my hostel window.', avatar: 'https://images.pexels.com/photos/1542085/pexels-photo-1542085.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2' },
+            { id: 16, name: 'Vihaan', question: 'What subject could you talk about for hours?', answer: 'Cricket statistics. Don\'t get me started!', avatar: 'https://images.pexels.com/photos/1212984/pexels-photo-1212984.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2' },
+            { id: 17, name: 'Kiara', question: 'What\'s your favorite type of movie?', answer: 'A good suspense thriller that keeps me guessing.', avatar: 'https://images.pexels.com/photos/1065084/pexels-photo-1065084.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2' },
+            { id: 18, name: 'Reyansh', question: 'What\'s the best advice you\'ve ever received?', answer: '"This too shall pass." It helps with exam stress.', avatar: 'https://images.pexels.com/photos/937481/pexels-photo-937481.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2' },
+            { id: 19, name: 'Aarohi', question: 'What are you most excited about for the future?', answer: 'Graduating and starting my own design studio.', avatar: 'https://images.pexels.com/photos/762020/pexels-photo-762020.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2', isMatch: true },
+            { id: 20, name: 'Neel', question: 'What\'s a weird talent you have?', answer: 'I can solve a Rubik\'s Cube in under a minute.', avatar: 'https://images.pexels.com/photos/874158/pexels-photo-874158.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2' }
+        ];
+
+        const stories = [
+            { user: 'Your Story', avatar: 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2' },
+            { user: 'CampusClicks', avatar: 'https://images.pexels.com/photos/1520760/pexels-photo-1520760.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2' },
+            { user: 'FoodieFinds', avatar: 'https://images.pexels.com/photos/1024311/pexels-photo-1024311.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2' },
+            { user: 'ArtClub', avatar: 'https://images.pexels.com/photos/1499327/pexels-photo-1499327.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2' },
+            { user: 'Saanvi', avatar: 'https://images.pexels.com/photos/1130626/pexels-photo-1130626.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2' },
+            { user: 'Karan', avatar: 'https://images.pexels.com/photos/837358/pexels-photo-837358.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2' },
+            { user: 'Priya', avatar: 'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2' }
         ];
 
         const feedPosts = [
-            { user: 'CampusClicks', avatar: 'https://placehold.co/50x50/FBBF24/4A5568?text=CC', image: 'https://placehold.co/600x400/D1D5DB/4A5568?text=Campus+View', caption: 'Golden hour at the library. The perfect place to cram for mid-terms! 📚✨ #studylife #campus', likes: 102, comments: 5 },
-            { user: 'FoodieFinds', avatar: 'https://placehold.co/50x50/F87171/4A5568?text=FF', image: 'https://placehold.co/600x400/D1D5DB/4A5568?text=Delicious+Food', caption: 'Discovered the best samosas near North Campus. Game changer! 🥟🔥', likes: 234, comments: 22 },
-            { user: 'ArtClub', avatar: 'https://placehold.co/50x50/60A5FA/4A5568?text=AC', image: 'https://placehold.co/600x400/D1D5DB/4A5568?text=Art+Project', caption: 'Our latest mural project is finally complete! So proud of the team. Come check it out behind the science block!', likes: 88, comments: 9 }
+            { user: 'CampusClicks', avatar: 'https://images.pexels.com/photos/1520760/pexels-photo-1520760.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2', image: 'https://images.pexels.com/photos/2662116/pexels-photo-2662116.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2', caption: 'Golden hour at the library. The perfect place to cram for mid-terms! 📚✨ #studylife #campus', likes: 102, comments: 5 },
+            { user: 'FoodieFinds', avatar: 'https://images.pexels.com/photos/1024311/pexels-photo-1024311.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2', image: 'https://images.pexels.com/photos/1633578/pexels-photo-1633578.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2', caption: 'Discovered the best burger joint near North Campus. Game changer! 🍔🔥', likes: 234, comments: 22 },
+            { isAd: true, brand: 'QuickBites Delivery', image: 'https://images.pexels.com/photos/5638593/pexels-photo-5638593.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2', cta: 'Late night cravings? Get 50% off your first order. Use code: STUDYFUEL' },
+            { user: 'ArtClub', avatar: 'https://images.pexels.com/photos/1499327/pexels-photo-1499327.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2', image: 'https://images.pexels.com/photos/102127/pexels-photo-102127.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2', caption: 'Our latest mural project is finally complete! So proud of the team. Come check it out behind the science block!', likes: 88, comments: 9 },
+            { isAd: true, brand: 'Red Bull', image: 'https://images.pexels.com/photos/13045618/pexels-photo-13045618.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2', cta: 'Need wiiings for your all-nighter? Red Bull gives you wiiings.' },
         ];
 
         const experts = [
-            { name: 'Dr. Anjali Sharma', specialty: 'Stress & Anxiety Management', avatar: 'https://placehold.co/100x100/A78BFA/FFFFFF?text=AS' },
-            { name: 'Dr. Vikram Singh', specialty: 'Academic Pressure & Burnout', avatar: 'https://placehold.co/100x100/60A5FA/FFFFFF?text=VS' },
-            { name: 'Dr. Priya Desai', specialty: 'Relationship Counseling', avatar: 'https://placehold.co/100x100/F472B6/FFFFFF?text=PD' }
+            { name: 'Dr. Anjali Sharma', specialty: 'Stress & Anxiety Management', avatar: 'https://images.pexels.com/photos/4173249/pexels-photo-4173249.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2' },
+            { name: 'Dr. Vikram Singh', specialty: 'Academic Pressure & Burnout', avatar: 'https://images.pexels.com/photos/5215024/pexels-photo-5215024.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2' },
+            { name: 'Dr. Priya Desai', specialty: 'Relationship Counseling', avatar: 'https://images.pexels.com/photos/5407206/pexels-photo-5407206.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2' }
         ];
 
 
@@ -278,35 +475,31 @@
             link.addEventListener('click', (e) => {
                 e.preventDefault();
                 const tab = link.dataset.tab;
-
                 navLinks.forEach(l => l.classList.remove('active'));
                 link.classList.add('active');
-
                 tabContents.forEach(content => {
-                    if (content.id === tab) {
-                        content.classList.remove('hidden');
-                    } else {
-                        content.classList.add('hidden');
-                    }
+                    content.id === tab ? content.classList.remove('hidden') : content.classList.add('hidden');
                 });
             });
         });
 
 
-        // --- Connections Tab Logic (REVISED & FIXED) ---
+        // --- Connections Tab Logic ---
         const cardStack = document.getElementById('cardStack');
         const likeBtn = document.getElementById('likeBtn');
         const nopeBtn = document.getElementById('nopeBtn');
-        let currentProfiles = [...connectionProfiles];
+        let profilesData = [...connectionProfiles];
         let activeCard = null;
+        let currentMatchProfile = null;
+        let matchedCardElement = null; // To hold the card element during match animation
 
         function createProfileCard(profile) {
             const card = document.createElement('div');
             card.classList.add('profile-card');
+            card.dataset.profileId = profile.id;
             card.innerHTML = `
                 <div class="status-indicator like">Like</div>
                 <div class="status-indicator nope">Nope</div>
-                <img src="${profile.avatar}" alt="${profile.name}" class="w-24 h-24 rounded-full mb-4 border-4 border-gray-100">
                 <h3 class="text-2xl font-bold text-gray-800">${profile.name}</h3>
                 <p class="text-sm text-gray-500 mt-2 mb-4">"${profile.question}"</p>
                 <p class="text-gray-700 text-lg leading-relaxed">“${profile.answer}”</p>
@@ -314,52 +507,40 @@
             return card;
         }
         
-        // New function to centralize UI updates for the card stack
         function updateCardStackUI() {
             const allCards = cardStack.querySelectorAll('.profile-card');
             allCards.forEach((card, index) => {
-                // Only show and style the top 3 cards for performance and aesthetics
                 if (index > 2) {
                     card.style.opacity = 0;
                     card.style.pointerEvents = 'none';
                     return;
                 }
                 card.style.zIndex = allCards.length - index;
-                // The top card (index 0) is at rest. Cards below are scaled down and moved up to peek from behind.
                 card.style.transform = `scale(${1 - index * 0.05}) translateY(${index * -10}px)`;
                 card.style.opacity = 1;
                 card.style.pointerEvents = 'auto';
             });
         }
 
-
         function loadNextCards() {
-            // Replenish the stack if it's getting low
-            while (currentProfiles.length > 0 && cardStack.children.length < 3) {
-                 const profile = currentProfiles.shift(); // Use shift to get from the start of the array
+            while (profilesData.length > 0 && cardStack.children.length < 3) {
+                 const profile = profilesData.shift();
                  const newCard = createProfileCard(profile);
-                 cardStack.appendChild(newCard); // Append to add to the end of the list
+                 cardStack.appendChild(newCard);
             }
-            
             updateCardStackUI();
-
             activeCard = cardStack.firstElementChild;
             if (activeCard) {
                 initCardEvents(activeCard);
             }
-            
-            if (cardStack.children.length === 0) {
+            if (cardStack.children.length === 0 && !document.querySelector('.modal:not(.hidden)')) {
                  cardStack.innerHTML = '<p class="text-gray-500">That\'s everyone for now! Check back later.</p>';
             }
         }
 
         function initCardEvents(card) {
-            let isDragging = false;
-            let startX = 0;
-            let offsetX = 0;
-
-            const likeIndicator = card.querySelector('.like');
-            const nopeIndicator = card.querySelector('.nope');
+            let isDragging = false, startX = 0, offsetX = 0;
+            const likeIndicator = card.querySelector('.like'), nopeIndicator = card.querySelector('.nope');
 
             function onPointerDown(e) {
                 isDragging = true;
@@ -374,10 +555,8 @@
                 if (!isDragging) return;
                 const currentX = e.clientX || e.touches[0].clientX;
                 offsetX = currentX - startX;
-
                 const rotate = offsetX * 0.1;
                 card.style.transform = `translate(${offsetX}px) rotate(${rotate}deg)`;
-                
                 const opacity = Math.min(Math.abs(offsetX) / 100, 1);
                 if (offsetX > 0) {
                     likeIndicator.style.opacity = opacity;
@@ -395,11 +574,9 @@
                 document.removeEventListener('pointermove', onPointerMove);
                 document.removeEventListener('pointerup', onPointerUp);
                 document.removeEventListener('pointercancel', onPointerUp);
-
                 const decisionThreshold = 100;
                 if (Math.abs(offsetX) > decisionThreshold) {
-                    const direction = offsetX > 0 ? 1 : -1;
-                    swipeCard(direction);
+                    swipeCard(offsetX > 0 ? 1 : -1);
                 } else {
                     card.style.transition = 'transform 0.4s ease';
                     card.style.transform = `scale(1) translateY(0)`;
@@ -407,83 +584,260 @@
                     nopeIndicator.style.opacity = 0;
                 }
             }
-            
             card.addEventListener('pointerdown', onPointerDown);
         }
 
-        function swipeCard(direction) { // 1 for like, -1 for nope
+        function swipeCard(direction) {
             if (!activeCard) return;
-            activeCard.style.pointerEvents = 'none';
-
-            const flyoutX = (window.innerWidth / 2 + activeCard.offsetWidth) * direction;
-            const rotate = 45 * direction;
-            activeCard.style.transition = 'transform 0.4s ease, opacity 0.4s ease';
-            activeCard.style.transform = `translate(${flyoutX}px, 0) rotate(${rotate}deg)`;
             
-            activeCard.addEventListener('transitionend', () => {
-                activeCard.remove();
+            const cardToSwipe = activeCard;
+            activeCard = null; // Prevent further swipes on this card
+
+            const profileId = parseInt(cardToSwipe.dataset.profileId);
+            const profile = connectionProfiles.find(p => p.id === profileId);
+
+            if (direction === 1 && profile && profile.isMatch) {
+                triggerMatchAnimation(profile, cardToSwipe);
+                return; // Stop normal swipe flow for a match
+            }
+            
+            cardToSwipe.style.pointerEvents = 'none';
+            const flyoutX = (window.innerWidth / 2 + cardToSwipe.offsetWidth) * direction;
+            const rotate = 45 * direction;
+            cardToSwipe.style.transition = 'transform 0.4s ease, opacity 0.4s ease';
+            cardToSwipe.style.transform = `translate(${flyoutX}px, 0) rotate(${rotate}deg)`;
+            cardToSwipe.addEventListener('transitionend', () => {
+                if (cardToSwipe) {
+                    cardToSwipe.remove();
+                }
                 loadNextCards();
             }, { once: true });
         }
 
         likeBtn.addEventListener('click', () => swipeCard(1));
         nopeBtn.addEventListener('click', () => swipeCard(-1));
-
-        // Initial load
         loadNextCards();
 
-
         // --- Feed Tab Logic ---
+        const storiesSection = document.getElementById('stories-section');
         const feedContainer = document.getElementById('feed-container');
+        
+        // Render Stories
+        const storiesHtml = `
+            <div class="bg-white p-4 rounded-2xl shadow-md">
+                <div class="flex space-x-4 overflow-x-auto stories-container">
+                    ${stories.map((story, index) => `
+                        <div class="flex-shrink-0 text-center w-20">
+                            <div class="p-1 rounded-full story-ring">
+                                <img src="${story.avatar}" alt="${story.user}" class="w-16 h-16 rounded-full border-2 border-white object-cover">
+                            </div>
+                            <p class="text-xs mt-1 truncate">${story.user}</p>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+        storiesSection.innerHTML = storiesHtml;
+
+        // Render Feed Posts & Ads
         feedPosts.forEach(post => {
             const postElement = document.createElement('div');
             postElement.classList.add('bg-white', 'rounded-2xl', 'shadow-md', 'overflow-hidden');
-            postElement.innerHTML = `
-                <div class="p-4 flex items-center space-x-3">
-                    <img src="${post.avatar}" alt="${post.user}" class="w-10 h-10 rounded-full">
-                    <div>
-                        <p class="font-semibold text-gray-800">${post.user}</p>
+            
+            if (post.isAd) {
+                postElement.innerHTML = `
+                    <div class="p-4">
+                        <p class="text-xs font-semibold text-gray-500">Sponsored</p>
+                        <h3 class="font-bold text-lg">${post.brand}</h3>
                     </div>
-                </div>
-                <div>
-                    <img src="${post.image}" alt="Feed post" class="w-full h-auto">
-                </div>
-                <div class="p-4">
-                    <p class="text-gray-700"><span class="font-semibold">${post.user}</span> ${post.caption}</p>
-                    <div class="flex items-center space-x-6 mt-4 text-gray-500">
-                        <button class="flex items-center space-x-2 hover:text-pink-500">
-                            <i data-lucide="heart" class="w-6 h-6"></i>
-                            <span>${post.likes}</span>
-                        </button>
-                        <button class="flex items-center space-x-2 hover:text-blue-500">
-                            <i data-lucide="message-circle" class="w-6 h-6"></i>
-                            <span>${post.comments}</span>
-                        </button>
-                        <button class="hover:text-gray-700 ml-auto">
-                            <i data-lucide="send" class="w-6 h-6"></i>
-                        </button>
-                    </div>
-                </div>
-            `;
+                    <div><img src="${post.image}" alt="Ad" class="w-full h-auto object-cover"></div>
+                    <div class="p-4">
+                        <p class="text-gray-700">${post.cta}</p>
+                        <button class="mt-2 w-full bg-blue-500 text-white font-semibold py-2 rounded-lg">Learn More</button>
+                    </div>`;
+            } else {
+                postElement.innerHTML = `
+                    <div class="p-4 flex items-center space-x-3"><img src="${post.avatar}" alt="${post.user}" class="w-10 h-10 rounded-full object-cover"><div><p class="font-semibold text-gray-800">${post.user}</p></div></div>
+                    <div><img src="${post.image}" alt="Feed post" class="w-full h-auto"></div>
+                    <div class="p-4"><p class="text-gray-700"><span class="font-semibold">${post.user}</span> ${post.caption}</p><div class="flex items-center space-x-6 mt-4 text-gray-500"><button class="flex items-center space-x-2 hover:text-pink-500"><i data-lucide="heart" class="w-6 h-6"></i><span>${post.likes}</span></button><button class="flex items-center space-x-2 hover:text-blue-500"><i data-lucide="message-circle" class="w-6 h-6"></i><span>${post.comments}</span></button><button class="hover:text-gray-700 ml-auto"><i data-lucide="send" class="w-6 h-6"></i></button></div></div>`;
+            }
             feedContainer.appendChild(postElement);
         });
-        lucide.createIcons(); // Re-run to render icons in feed
+        lucide.createIcons();
 
-        // --- Help Tab Logic ---
-        const helpContainer = document.querySelector('#help .grid');
+        // --- Wellness Hub & Chat Logic ---
+        const expertsGrid = document.getElementById('experts-grid');
+        const chatModal = document.getElementById('chatModal');
+        const closeChatBtn = document.getElementById('closeChatBtn');
+        const chatForm = document.getElementById('chatForm');
+        const chatInput = document.getElementById('chatInput');
+        const chatMessages = document.getElementById('chatMessages');
+        const chatExpertName = document.getElementById('chat-expert-name');
+
         experts.forEach(expert => {
             const expertCard = document.createElement('div');
             expertCard.classList.add('bg-white', 'p-6', 'rounded-2xl', 'shadow-lg', 'text-center', 'stat-card');
             expertCard.innerHTML = `
-                <img src="${expert.avatar}" alt="${expert.name}" class="w-24 h-24 rounded-full mx-auto mb-4 border-4 border-pink-200">
+                <img src="${expert.avatar}" alt="${expert.name}" class="w-24 h-24 rounded-full mx-auto mb-4 border-4 border-pink-200 object-cover">
                 <h3 class="text-xl font-bold text-gray-900">${expert.name}</h3>
                 <p class="text-pink-600 font-medium">${expert.specialty}</p>
-                <button class="mt-4 w-full bg-gradient-to-r from-pink-500 to-orange-400 text-white font-semibold px-5 py-2 rounded-full hover:shadow-lg transition">
+                <button class="start-chat-btn mt-4 w-full bg-gradient-to-r from-pink-500 to-orange-400 text-white font-semibold px-5 py-2 rounded-full hover:shadow-lg transition" data-expert-name="${expert.name}">
                     Start Chat
-                </button>
-            `;
-            helpContainer.appendChild(expertCard);
+                </button>`;
+            expertsGrid.appendChild(expertCard);
         });
+
+        function openChat(expertName) {
+            chatExpertName.textContent = `Chat with ${expertName}`;
+            chatMessages.innerHTML = '';
+            chatModal.classList.remove('hidden');
+        }
+
+        function closeChat() {
+            chatModal.classList.add('hidden');
+        }
+
+        function addMessage(message, sender) {
+            const bubble = document.createElement('div');
+            bubble.classList.add('max-w-xs', 'p-3', 'rounded-2xl');
+            bubble.textContent = message;
+            if (sender === 'user') {
+                bubble.classList.add('chat-bubble-user', 'self-end', 'ml-auto');
+            } else {
+                bubble.classList.add('chat-bubble-therapist', 'self-start', 'mr-auto');
+            }
+            chatMessages.appendChild(bubble);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        expertsGrid.addEventListener('click', (e) => {
+            if (e.target.closest('.start-chat-btn')) {
+                const expertName = e.target.closest('.start-chat-btn').dataset.expertName;
+                openChat(expertName);
+            }
+        });
+
+        closeChatBtn.addEventListener('click', closeChat);
+
+        chatForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const message = chatInput.value.trim();
+            if (!message) return;
+            addMessage(message, 'user');
+            if (message.toLowerCase() === 'hi') {
+                setTimeout(() => {
+                    addMessage('Hello! Thanks for reaching out. How are you feeling today?', 'therapist');
+                }, 1000);
+            }
+            chatInput.value = '';
+        });
+        
+        // --- Match Animation Logic ---
+        const matchModal = document.getElementById('matchModal');
+        const startChattingBtn = document.getElementById('startChattingBtn');
+        const matchName = document.getElementById('matchName');
+        const profileMatchPhoto = document.getElementById('profileMatchPhoto');
+        const emojiRainContainer = document.querySelector('.emoji-rain');
+
+        function triggerMatchAnimation(profile, cardElement) {
+            matchedCardElement = cardElement;
+            currentMatchProfile = profile;
+            matchName.textContent = profile.name;
+            profileMatchPhoto.src = profile.avatar;
+            matchModal.classList.remove('hidden');
+            createEmojiRain();
+        }
+        
+        startChattingBtn.addEventListener('click', () => {
+            matchModal.classList.add('hidden');
+            emojiRainContainer.innerHTML = ''; // Clear emojis
+            if(matchedCardElement) {
+                matchedCardElement.remove();
+                matchedCardElement = null;
+            }
+            loadNextCards();
+            if (currentMatchProfile) {
+                openChat(currentMatchProfile.name);
+                currentMatchProfile = null;
+            }
+        });
+
+        function createEmojiRain() {
+            const emojis = ['💖', '✨', '🎉', '🔥', '😍', '🥳', '🤩'];
+            for (let i = 0; i < 30; i++) {
+                const emoji = document.createElement('div');
+                emoji.classList.add('emoji');
+                emoji.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+                emoji.style.left = `${Math.random() * 100}%`;
+                emoji.style.animationDuration = `${Math.random() * 2 + 3}s`; // 3-5 seconds
+                emoji.style.animationDelay = `${Math.random() * 2}s`;
+                emojiRainContainer.appendChild(emoji);
+            }
+        }
+        
+        // --- Auth Flow Logic ---
+        const authContainer = document.getElementById('auth-container');
+        const loginBtn = document.getElementById('login-btn');
+        const signupBtn = document.getElementById('signup-btn');
+        const joinCommunityBtn = document.getElementById('join-community-btn');
+        const authModal = document.getElementById('authModal');
+        const closeAuthModal = document.getElementById('closeAuthModal');
+        const authScanBtn = document.getElementById('authScanBtn');
+
+        function openAuthModal() {
+            authModal.classList.remove('hidden');
+        }
+
+        function closeAuthModalFunc() {
+            authModal.classList.add('hidden');
+        }
+
+        loginBtn.addEventListener('click', openAuthModal);
+        signupBtn.addEventListener('click', openAuthModal);
+        joinCommunityBtn.addEventListener('click', openAuthModal);
+        closeAuthModal.addEventListener('click', closeAuthModalFunc);
+        
+        authScanBtn.addEventListener('click', () => {
+            closeAuthModalFunc();
+            authContainer.innerHTML = `<p class="font-semibold text-gray-800">Welcome, Madhav Garg</p>`;
+        });
+        
+        // --- Notification Logic ---
+        const notificationContainer = document.getElementById('notification-container');
+        const clubAnnouncements = [
+            "Don't miss out! The Entrepreneurship Cell's Case Study Competition registration is now open.",
+            "Calling all coders! ACM's 24-Hour Hackathon is this weekend. Are you ready?",
+            "Build the future! The Robotics Club is recruiting for the IARC team. Submit your blueprint today."
+        ];
+        let currentAnnouncementIndex = 0;
+
+        function showNotification() {
+            const message = clubAnnouncements[currentAnnouncementIndex];
+            currentAnnouncementIndex = (currentAnnouncementIndex + 1) % clubAnnouncements.length;
+
+            const notification = document.createElement('div');
+            notification.classList.add('notification', 'bg-white', 'p-4', 'rounded-lg', 'shadow-lg', 'max-w-xs');
+            notification.innerHTML = `
+                <div class="flex items-start space-x-3">
+                    <div><i data-lucide="bell" class="w-5 h-5 text-pink-500"></i></div>
+                    <div>
+                        <p class="font-semibold text-gray-800">Club Announcement</p>
+                        <p class="text-sm text-gray-600">${message}</p>
+                    </div>
+                </div>
+            `;
+            
+            notificationContainer.appendChild(notification);
+            lucide.createIcons();
+
+            setTimeout(() => {
+                notification.remove();
+            }, 5000); // Notification stays for 5 seconds
+        }
+
+        // Show a notification every 30 seconds
+        setInterval(showNotification, 30000);
+
 
     </script>
 </body>

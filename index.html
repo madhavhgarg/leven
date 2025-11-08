@@ -167,6 +167,58 @@
             from { opacity: 1; transform: translateX(0); }
             to { opacity: 0; transform: translateX(100%); }
         }
+        /* Alumni Styles */
+        .alumni-card {
+            background-color: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border: 1px solid #e5e7eb;
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+        .alumni-card:hover {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            transform: translateY(-5px);
+        }
+        .alumni-card img {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+        }
+        .alumni-card-content {
+            padding: 1rem;
+            border-top: 1px solid #e5e7eb;
+        }
+        .alumni-card-footer {
+            padding: 1rem;
+            border-top: 1px solid #e5e7eb;
+            background-color: #f9fafb;
+        }
+        #alumni-footer-bar {
+            background-color: #9A1C20; /* Matching the red from screenshot */
+            color: white;
+            padding: 1.5rem;
+            margin-top: 2rem;
+        }
+        #alumni-footer-bar h3 {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        #alumni-footer-bar p {
+            font-size: 1rem;
+            margin-top: 0.25rem;
+        }
+        #alumni-footer-bar button {
+            background-color: #FBBF24; /* Yellow button */
+            color: #4A5568;
+            font-weight: bold;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.25rem;
+            transition: background-color 0.3s;
+        }
+        #alumni-footer-bar button:hover {
+            background-color: #F59E0B;
+        }
     </style>
 </head>
 <body class="text-gray-800">
@@ -183,6 +235,7 @@
                 <a href="#feed" class="nav-link" data-tab="feed">Feed</a>
                 <a href="#clubs" class="nav-link" data-tab="clubs">Clubs & Communities</a>
                 <a href="#jobs" class="nav-link" data-tab="jobs">Job Postings</a>
+                <a href="#alumni" class="nav-link" data-tab="alumni">Alumni</a>
                 <a href="#wellness" class="nav-link" data-tab="wellness">Wellness Hub</a>
             </div>
             <div id="auth-container" class="flex items-center space-x-2">
@@ -355,6 +408,28 @@
             </div>
         </section>
 
+        <!-- Alumni Section -->
+        <section id="alumni" class="tab-content hidden">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-gray-900">Alumni Profiles</h2>
+                <p class="mt-2 text-gray-600 max-w-xl mx-auto">Connect with a powerful network of graduates from your university.</p>
+            </div>
+            
+            <!-- New Sub-header -->
+            <h3 class="text-2xl font-bold text-gray-800 mb-6">PEC Alumni</h3>
+
+            <div id="alumni-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Alumni cards will be injected here by JavaScript -->
+            </div>
+            <div id="alumni-footer-bar" class="flex flex-col md:flex-row justify-between items-center rounded-lg">
+                <div>
+                    <h3>18705 More Alumni are Active on PEC Community</h3>
+                    <p>Complete directory of the PEC Community is restricted for some members.</p>
+                </div>
+                <button class="mt-4 md:mt-0">CONTACT ADMIN</button>
+            </div>
+        </section>
+
         <!-- Wellness Hub Section -->
         <section id="wellness" class="tab-content hidden">
             <div class="text-center">
@@ -416,6 +491,11 @@
                  <img id="userMatchPhoto" src="https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" alt="You" class="w-32 h-32 rounded-full border-4 border-white shadow-lg object-cover">
                  <img id="profileMatchPhoto" src="" alt="Your Match" class="w-32 h-32 rounded-full border-4 border-white shadow-lg object-cover">
             </div>
+            <div id="icebreaker-section" class="my-4 p-4 bg-white/30 rounded-lg hidden text-white">
+                <p class="font-semibold text-sm">Need an icebreaker?</p>
+                <p id="icebreaker-text" class="mt-2 italic text-sm">"</p>
+                <button id="generate-icebreaker-btn" class="mt-3 text-xs text-white font-bold hover:underline">✨ Generate New Idea</button>
+            </div>
             <button id="startChattingBtn" class="mt-8 bg-white text-pink-500 font-bold px-8 py-3 rounded-full shadow-lg">Start Chatting</button>
         </div>
     </div>
@@ -427,6 +507,34 @@
 
 
     <script>
+        // --- Gemini API Call Helper ---
+        const API_KEY = ""; // Keep this empty
+        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${API_KEY}`;
+        
+        async function callGeminiAPI(prompt, systemInstruction = null) {
+            try {
+                const payload = { contents: [{ parts: [{ text: prompt }] }] };
+                if (systemInstruction) {
+                    payload.systemInstruction = { parts: [{ text: systemInstruction }] };
+                }
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!response.ok) throw new Error(`API call failed: ${response.status}`);
+                const result = await response.json();
+                const candidate = result.candidates?.[0];
+                if (candidate && candidate.content?.parts?.[0]?.text) {
+                    return candidate.content.parts[0].text.trim();
+                }
+                return "Sorry, I couldn't think of a response.";
+            } catch (error) {
+                console.error("Gemini API Error:", error);
+                return "My circuits are busy. Please try again.";
+            }
+        }
+
         // Lucide Icons initialization
         lucide.createIcons();
 
@@ -493,6 +601,21 @@
             { title: 'Management Trainee', company: 'Tata Motors', location: 'Pune', type: 'Full-time' },
             { title: 'Research Intern', company: 'DRDO', location: 'Delhi', type: 'Internship' }
         ];
+        
+        const alumniProfiles = [
+            { name: 'Jorawer Singh', classOf: 1990, degree: 'B.Tech, Civil Engineering', location: 'Chandigarh, Chandigarh', avatar: 'https://placehold.co/250x250/E5E7EB/4A5568?text=J' },
+            { name: '(Er.) Surinder Singh Ahluwalia', classOf: 1968, degree: 'B.Tech, Production & Industrial Engineering', location: 'Oakville Ontario Canada', avatar: 'https://placehold.co/250x250/E5E7EB/4A5568?text=S' },
+            { name: '(Dr) Sunder Lall Dhingra', classOf: 1966, degree: 'B.Tech, Civil Engineering', location: 'Mumbai, Maharashtra', avatar: 'https://placehold.co/250x250/E5E7EB/4A5568?text=S' },
+            { name: '(Prof.) Rajkumar Pant', classOf: 1983, degree: 'B.Tech, Aerospace Engineering', location: 'Mumbai, Maharashtra', avatar: 'https://placehold.co/250x250/E5E7EB/4A5568?text=R' },
+            { name: '(Brig.) Krishan Kumar Marwah (Retd) Marwah', classOf: 1973, degree: 'B.Sc, Electrical Engineering', location: 'Panchkula, Haryana', avatar: 'https://placehold.co/250x250/E5E7EB/4A5568?text=K' },
+            { name: '(Brig) Krishan Kumar Marwah', classOf: 1973, degree: 'B.Sc, Electrical Engineering', location: 'Panchkula', avatar: 'https://placehold.co/250x250/E5E7EB/4A5568?text=K' },
+            { name: '(Cmde) Krishan Chandra', classOf: 1973, degree: 'B.Sc, Electrical Engineering', location: 'Noida, Uttar Pradesh', avatar: 'https://placehold.co/250x250/E5E7EB/4A5568?text=K' },
+            { name: '(Col.) Ashok Kumar Sharma', classOf: 1972, degree: 'B.Tech, Electrical Engineering', location: 'Gurugram, Haryana', avatar: 'https://placehold.co/250x250/E5E7EB/4A5568?text=A' },
+            { name: '(Col.) Satya Pal Tomar', classOf: 1971, degree: 'B.Tech, Civil Engineering', location: 'Delhi, Delhi', avatar: 'https://placehold.co/250x250/E5E7EB/4A5568?text=S' },
+            { name: '(Col) Harinder Pal Singh Singh', classOf: 1973, degree: 'B.Sc, Production & Industrial Engineering', location: 'Pune, Maharashtra', avatar: 'https://placehold.co/250x250/E5E7EB/4A5568?text=H' },
+            { name: '(Dr.) Alok Gupta', classOf: 1968, degree: 'B.Tech, Mechanical Engineering', location: 'Mysuru, Karnataka', avatar: 'https://placehold.co/250x250/E5E7EB/4A5568?text=A' },
+            { name: '(Dr.) D.P. Singh', classOf: 1972, degree: 'B.Tech, Materials & Metallurgical Engineering', location: 'Chandigarh, Chandigarh', avatar: 'https://placehold.co/250x250/E5E7EB/4A5568?text=D' }
+        ];
 
 
         // --- Tab Navigation ---
@@ -520,6 +643,7 @@
         let activeCard = null;
         let currentMatchProfile = null;
         let matchedCardElement = null; // To hold the card element during match animation
+        let isCardAnimating = false; // Prevent double swipes
 
         function createProfileCard(profile) {
             const card = document.createElement('div');
@@ -546,11 +670,16 @@
                 card.style.zIndex = allCards.length - index;
                 card.style.transform = `scale(${1 - index * 0.05}) translateY(${index * -10}px)`;
                 card.style.opacity = 1;
-                card.style.pointerEvents = 'auto';
+                card.style.pointerEvents = (index === 0) ? 'auto' : 'none';
             });
         }
 
         function loadNextCards() {
+            // Replenish the main array if it's empty
+            if (profilesData.length === 0) {
+                profilesData = [...connectionProfiles];
+            }
+            
             while (profilesData.length > 0 && cardStack.children.length < 3) {
                  const profile = profilesData.shift();
                  const newCard = createProfileCard(profile);
@@ -571,6 +700,7 @@
             const likeIndicator = card.querySelector('.like'), nopeIndicator = card.querySelector('.nope');
 
             function onPointerDown(e) {
+                if (isCardAnimating) return;
                 isDragging = true;
                 card.classList.add('dragging');
                 startX = e.clientX || e.touches[0].clientX;
@@ -616,10 +746,12 @@
         }
 
         function swipeCard(direction) {
-            if (!activeCard) return;
+            if (!activeCard || isCardAnimating) return;
+            isCardAnimating = true;
             
             const cardToSwipe = activeCard;
-            activeCard = null; // Prevent further swipes on this card
+            activeCard = cardStack.children[1] || null; // Get next card
+            if(activeCard) initCardEvents(activeCard);
 
             const profileId = parseInt(cardToSwipe.dataset.profileId);
             const profile = connectionProfiles.find(p => p.id === profileId);
@@ -639,6 +771,7 @@
                     cardToSwipe.remove();
                 }
                 loadNextCards();
+                isCardAnimating = false;
             }, { once: true });
         }
 
@@ -708,6 +841,26 @@
             `;
             jobListingsContainer.appendChild(jobElement);
         });
+        
+        // --- Alumni Logic ---
+        const alumniGrid = document.getElementById('alumni-grid');
+        alumniProfiles.forEach(profile => {
+            const card = document.createElement('div');
+            card.classList.add('alumni-card');
+            card.innerHTML = `
+                <img src="${profile.avatar}" alt="${profile.name}" onerror="this.src='https://placehold.co/250x250/E5E7EB/4A5568?text=Photo'"/>
+                <div class="alumni-card-content">
+                    <h3 class="text-lg font-bold text-gray-900">${profile.name}</h3>
+                    <p class="text-sm text-gray-600">Class of ${profile.classOf}</p>
+                    <p class="text-sm text-gray-500 mt-1">${profile.degree}</p>
+                    <p class="text-sm text-gray-500 mt-1">${profile.location}</p>
+                </div>
+                <div class="alumni-card-footer">
+                    <a href="#" class="font-semibold text-pink-600 hover:text-pink-700">View more ></a>
+                </div>
+            `;
+            alumniGrid.appendChild(card);
+        });
 
         // --- Wellness Hub & Chat Logic ---
         const expertsGrid = document.getElementById('experts-grid');
@@ -717,6 +870,7 @@
         const chatInput = document.getElementById('chatInput');
         const chatMessages = document.getElementById('chatMessages');
         const chatExpertName = document.getElementById('chat-expert-name');
+        let currentChatContext = null; // Can be 'wellness' or 'match'
 
         experts.forEach(expert => {
             const expertCard = document.createElement('div');
@@ -731,24 +885,39 @@
             expertsGrid.appendChild(expertCard);
         });
 
-        function openChat(expertName) {
-            chatExpertName.textContent = `Chat with ${expertName}`;
+        function openChat(name, context = 'wellness') {
+            chatExpertName.textContent = `Chat with ${name}`;
             chatMessages.innerHTML = '';
+            currentChatContext = context;
+            
+            if (context === 'wellness') {
+                addMessage(`You are now chatting with ${name}.`, 'system');
+            } else {
+                addMessage(`You matched with ${name}. Say hello!`, 'system');
+            }
+            
             chatModal.classList.remove('hidden');
         }
 
         function closeChat() {
             chatModal.classList.add('hidden');
+            currentChatContext = null;
         }
 
         function addMessage(message, sender) {
             const bubble = document.createElement('div');
-            bubble.classList.add('max-w-xs', 'p-3', 'rounded-2xl');
-            bubble.textContent = message;
-            if (sender === 'user') {
-                bubble.classList.add('chat-bubble-user', 'self-end', 'ml-auto');
+            
+            if (sender === 'system') {
+                bubble.classList.add('text-center', 'text-sm', 'text-gray-500', 'my-2');
+                bubble.textContent = message;
             } else {
-                bubble.classList.add('chat-bubble-therapist', 'self-start', 'mr-auto');
+                bubble.classList.add('max-w-xs', 'p-3', 'rounded-2xl');
+                bubble.textContent = message;
+                if (sender === 'user') {
+                    bubble.classList.add('chat-bubble-user', 'self-end', 'ml-auto');
+                } else {
+                    bubble.classList.add('chat-bubble-therapist', 'self-start', 'mr-auto');
+                }
             }
             chatMessages.appendChild(bubble);
             chatMessages.scrollTop = chatMessages.scrollHeight;
@@ -757,23 +926,31 @@
         expertsGrid.addEventListener('click', (e) => {
             if (e.target.closest('.start-chat-btn')) {
                 const expertName = e.target.closest('.start-chat-btn').dataset.expertName;
-                openChat(expertName);
+                openChat(expertName, 'wellness');
             }
         });
 
         closeChatBtn.addEventListener('click', closeChat);
 
-        chatForm.addEventListener('submit', (e) => {
+        chatForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const message = chatInput.value.trim();
             if (!message) return;
             addMessage(message, 'user');
-            if (message.toLowerCase() === 'hi') {
-                setTimeout(() => {
-                    addMessage('Hello! Thanks for reaching out. How are you feeling today?', 'therapist');
-                }, 1000);
-            }
             chatInput.value = '';
+            
+            let prompt = message;
+            let systemInstruction = null;
+
+            if (currentChatContext === 'wellness') {
+                systemInstruction = "You are a supportive, empathetic wellness companion for a college student. Your role is to listen, offer encouragement, and provide positive, general advice. Do not give medical advice. Keep your responses concise and caring.";
+            } else {
+                // For regular match chat, no special system prompt is needed, or it could be a simple "you are a helpful friend".
+                // For this demo, we'll just let the AI respond.
+            }
+
+            const aiResponse = await callGeminiAPI(prompt, systemInstruction);
+            addMessage(aiResponse, 'therapist');
         });
         
         // --- Match Animation Logic ---
@@ -782,15 +959,38 @@
         const matchName = document.getElementById('matchName');
         const profileMatchPhoto = document.getElementById('profileMatchPhoto');
         const emojiRainContainer = document.querySelector('.emoji-rain');
+        const icebreakerSection = document.getElementById('icebreaker-section');
+        const icebreakerText = document.getElementById('icebreaker-text');
+        const generateIcebreakerBtn = document.getElementById('generate-icebreaker-btn');
 
-        function triggerMatchAnimation(profile, cardElement) {
+        async function triggerMatchAnimation(profile, cardElement) {
             matchedCardElement = cardElement;
             currentMatchProfile = profile;
             matchName.textContent = profile.name;
             profileMatchPhoto.src = profile.avatar;
+            icebreakerSection.classList.add('hidden');
             matchModal.classList.remove('hidden');
             createEmojiRain();
+            
+            // Generate icebreaker automatically
+            generateIcebreakerBtn.disabled = true;
+            icebreakerText.textContent = "Thinking of a great icebreaker...";
+            const prompt = `Generate a short, fun, one-sentence icebreaker for a college student named Madhav to send to ${profile.name}, whose answer to "${profile.question}" was "${profile.answer}". Be casual. Do not use quotes.`;
+            const response = await callGeminiAPI(prompt);
+            icebreakerText.textContent = `"${response}"`;
+            icebreakerSection.classList.remove('hidden');
+            generateIcebreakerBtn.disabled = false;
         }
+        
+        generateIcebreakerBtn.addEventListener('click', async () => {
+             if (!currentMatchProfile) return;
+             generateIcebreakerBtn.disabled = true;
+             icebreakerText.textContent = "Thinking of another one...";
+             const prompt = `Generate another short, fun, one-sentence icebreaker for a college student named Madhav to send to ${currentMatchProfile.name}, whose answer to "${currentMatchProfile.question}" was "${currentMatchProfile.answer}". Be casual. Do not use quotes.`;
+             const response = await callGeminiAPI(prompt);
+             icebreakerText.textContent = `"${response}"`;
+             generateIcebreakerBtn.disabled = false;
+        });
         
         startChattingBtn.addEventListener('click', () => {
             matchModal.classList.add('hidden');
@@ -801,7 +1001,7 @@
             }
             loadNextCards();
             if (currentMatchProfile) {
-                openChat(currentMatchProfile.name);
+                openChat(currentMatchProfile.name, 'match');
                 currentMatchProfile = null;
             }
         });
@@ -901,7 +1101,6 @@
 
         // Show a notification every 21 seconds
         setInterval(showNotification, 21000);
-
 
     </script>
 </body>
